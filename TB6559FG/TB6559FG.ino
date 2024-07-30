@@ -121,7 +121,7 @@ void loop()
 		Serial.printf("%d\r\n", g_nDutyPWM);
 
 	}
-	if (M5.BtnC.wasPressed()) {
+	if (M5.BtnB.wasPressed()) {
 		if (g_nCntSeq == STOP)
 			g_nCntSeq = CW;
 
