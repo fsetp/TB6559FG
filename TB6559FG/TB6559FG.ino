@@ -4,17 +4,13 @@
 //
 #include <M5Stack.h>
 
-const uint8_t	nResBits	= 8;	// PWMに使用するビット数　n=1～16[bit]
+const uint8_t	nResBits	= 8;		// PWMに使用するビット数　n=1～16[bit]
 										// PWM周波数の最大値 Maxfreq = 80000000.0/2^n[Hz] = 312500[Hz]
-const uint8_t	PWM_CH		= 2;	// PWMチャンネル
-const uint8_t	PWM_PIN		= 2;	// PWM出力に使用するGPIO PIN番号
-const uint8_t	IN1_PIN		= 3;
-const uint8_t	IN2_PIN		= 1;
-const uint8_t	SB_PIN		= 16;
-
-int g_nDutyPWM = 0;	// デューティ n / 255
-
-double	nFreqPWM = 164700.0;
+const uint8_t	PWM_CH		= 2;		// PWMチャンネル
+const uint8_t	PWM_PIN		= 2;		// PWM出力に使用するGPIO PIN番号
+const uint8_t	IN1_PIN		= 3;		
+const uint8_t	IN2_PIN		= 1;		
+const uint8_t	SB_PIN		= 16;		
 
 typedef struct tagCNT_TABLE {
 	uint8_t	in1;
@@ -35,6 +31,10 @@ enum {
 	STANDBY
 };
 
+int	g_nDutyPWM				= 0;		// デューティ n / 255
+double	nFreqPWM			= 164700.0;	//
+int	g_nCntSeq				= STOP;		//
+
 ////////////////////////////////////////
 //
 void Control(int com)
@@ -46,20 +46,39 @@ void Control(int com)
 
 ////////////////////////////////////////
 //
+void DisplayValue()
+{
+	M5.Lcd.setCursor(10, 0);
+	M5.Lcd.setTextSize(3);
+//	M5.Lcd.setTextFont(3);
+	M5.Lcd.print("Duty Value");
+	M5.Lcd.setCursor(10, 40);
+	M5.Lcd.printf("  %d / 255   ", g_nDutyPWM);
+	M5.Lcd.setCursor(10, 80);
+	M5.Lcd.print("Frequency");
+	M5.Lcd.setCursor(10, 120);
+	M5.Lcd.printf("  %.1f	", nFreqPWM);
+
+	double fCurrent = g_nDutyPWM * 3.5012 + 0.2;
+
+	M5.Lcd.setCursor(10, 160);
+	M5.Lcd.print("Current");
+	M5.Lcd.setCursor(10, 200);
+	M5.Lcd.printf("  %.1fmA	   ", fCurrent);
+}
+
+////////////////////////////////////////
+//
 void setup()
 {
 	M5.begin();
 //	delay(10);
-//	M5.Power.begin();
+	M5.Power.begin();
 //	delay(10);
 	Serial.begin(115200);
 //	delay(10);
 
-//	M5.Lcd.setCursor(10, 0);
-//	M5.Lcd.setTextSize(2);
-//	M5.Lcd.setTextFont(3);
-//	M5.Lcd.printf("Duty Values = %d / 255\n", g_nDutyPWM);
-//	M5.Lcd.printf("Frequency = %.1f	\n", nFreqPWM);
+	DisplayValue();
 
 	pinMode(PWM_PIN,	OUTPUT); 
 	pinMode(IN1_PIN,	OUTPUT); 
@@ -68,7 +87,7 @@ void setup()
 
 	Serial.print("Initialize I/O");
 
-//	Control(STOP);
+	Control(STOP);
 
 	Serial.print("Control I/O");
 
@@ -101,9 +120,18 @@ void loop()
 
 		Serial.printf("%d\r\n", g_nDutyPWM);
 
-	} else if (M5.BtnC.wasPressed()) {
+	}
+	if (M5.BtnC.wasPressed()) {
+		if (g_nCntSeq == STOP)
+			g_nCntSeq = CW;
 
-	} else if (M5.BtnC.wasPressed()) {
+		if (g_nCntSeq == CW)
+			g_nCntSeq = STOP;
+
+		Control(g_nCntSeq);
+
+	}
+	if (M5.BtnC.wasPressed()) {
 		g_nDutyPWM--;
 
 		if (g_nDutyPWM < 0)
@@ -118,11 +146,7 @@ void loop()
 //		M5.Speaker.tone(659.255, 200); //Peett
 //		M5.Speaker.tone(783.991, 200); //Peett
 
-		M5.Lcd.setCursor(10, 0);
-//		M5.Lcd.setTextSize(3);
-		M5.Lcd.setTextFont(3);
-		M5.Lcd.printf("Duty Values = %d / 255\n", g_nDutyPWM);
-		M5.Lcd.printf("Frequency = %.1f	\n", nFreqPWM);
+		DisplayValue();
 
 		// チャンネルと周波数を更新
 		ledcSetup(PWM_CH, nFreqPWM, nResBits);
