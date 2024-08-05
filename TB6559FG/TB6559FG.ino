@@ -44,6 +44,8 @@ void Control(int com)
 	digitalWrite(IN1_PIN, CntTbale[com].in1 ? HIGH : LOW);
 	digitalWrite(IN2_PIN, CntTbale[com].in2 ? HIGH : LOW);
 	digitalWrite(SB_PIN, CntTbale[com].sb ? HIGH : LOW);
+
+	Serial.printf("In1 %s : In2 %s : Sb %s\r\n", CntTbale[com].in1 ? "on" : "off", CntTbale[com].in2 ? "on" : "off", CntTbale[com].sb ? "on" : "off");
 }
 
 ////////////////////////////////////////
@@ -68,8 +70,8 @@ void DisplayValue()
 	M5.Lcd.setCursor(10, 200);
 	M5.Lcd.printf("  %.1fmA	   ", fCurrent);
 
-	M5.Lcd.setCursor(200, 0);
-	M5.Lcd.setCursor(200, 40);
+	M5.Lcd.setCursor(220, 0);
+	M5.Lcd.setCursor(220, 40);
 	char* pText = NULL;
 	if (g_nCntSeq == STOP)
 		pText = "STOP";
